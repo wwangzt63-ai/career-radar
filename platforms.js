@@ -58,7 +58,7 @@ const hint=document.createElement("div");hint.className="platform-guide";hint.te
 row.append(input,btn);
 panel.append(row,hint);
 
-const filterPanel=document.querySelector(".panel:has(.filters)");
+const filterPanel=document.querySelector(".filters")?.closest(".panel");
 const manualPanel=document.getElementById("add-form")?.closest(".panel");
 if(filterPanel&&filterPanel.parentNode){
  filterPanel.insertAdjacentElement("afterend",panel);
