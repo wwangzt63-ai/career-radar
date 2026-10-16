@@ -29,7 +29,7 @@
 <main class="wrap">
   <div class="grid"><div class="metric"><strong id="count-all">—</strong><span>已整理线索</span></div><div class="metric"><strong id="count-fit">—</strong><span>当前筛选结果</span></div><div class="metric"><strong id="count-top">—</strong><span>80分及以上</span></div><div class="metric"><strong id="count-applied">—</strong><span>已投递 / 面试中</span></div></div>
   <div id="feed-note" class="hint" role="status">正在尝试获取公开招聘数据……</div>
-  <section class="panel"><h2>筛选岗位</h2><div class="filters"><input id="search" type="text" placeholder="搜索公司、岗位或行业"><select id="city"><option value="bay">香港 / 深圳 / 大湾区</option><option value="hk">仅香港</option><option value="sz">仅深圳</option><option value="all">全部地区</option></select><select id="batch"><option value="all">全部类型</option><option value="intern">实习</option><option value="campus">正式校招 / 管培</option></select><select id="sort"><option value="score">按匹配分排序</option><option value="fresh">按首次出现日期</option><option value="deadline">按截止日期</option></select><select id="source"><option value="all">全部招聘来源</option><option value="official">企业公开岗位</option><option value="github">GitHub校招目录</option><option value="other">手动添加 / CSV</option></select></div>
+  <section class="panel"><h2>筛选岗位</h2><div class="filters"><input id="search" type="text" placeholder="搜索公司、岗位或行业"><select id="city"><option value="bay">香港 / 深圳 / 大湾区</option><option value="hk">仅香港</option><option value="sz">仅深圳</option><option value="all">全部地区</option></select><select id="batch"><option value="all">全部类型</option><option value="intern">实习</option><option value="campus">正式校招 / 管培</option></select><select id="sort"><option value="score">按匹配分排序</option><option value="fresh">按首次出现日期</option><option value="deadline">按截止日期</option></select><select id="source"><option value="all">全部招聘来源</option><option value="official">企业公开岗位</option><option value="github">GitHub校招目录</option><option value="boss">BOSS直聘（已收藏）</option><option value="other">手动添加 / CSV</option></select></div>
     <div class="row space" style="margin-top:13px"><label class="muted"><input id="show-uncertain" type="checkbox" checked> 包含信息不完整的招聘项目</label><button id="refresh">重新获取</button></div>
   </section>
   <div class="row space" style="margin:18px 0 13px"><strong id="results-heading">职位线索</strong><span class="muted">评分是规则初筛，不代表官方资格审核或 AI 大模型判断</span></div>
@@ -72,7 +72,7 @@ function active(j){return !j.deadline || j.deadline>=new Date().toISOString().sl
 function inGeo(j,geo){const s=j.locations.join(' ').toLowerCase();if(geo==='all')return true;if(geo==='hk')return s.includes('香港')||s.includes('hong kong');if(geo==='sz')return s.includes('深圳')||s.includes('shenzhen');return /香港|深圳|广州|东莞|珠海|惠州|中山|佛山|澳门|hong kong|shenzhen|guangzhou|全国|各地|不限/i.test(s)||!s}
 function inBatch(j,b){if(b==='all')return true;let s=(j.batch+' '+j.title+' '+j.program).toLowerCase();return b==='intern'?/实习|intern/.test(s):!/实习|intern/.test(s)}
 function render(){let merged=new Map();[...all,...local.manual.map((j,i)=>normalise(j,i,'手动添加'))].forEach(j=>merged.set(j.id,j));let original=[...merged.values()],txt=$('search').value.trim().toLowerCase(),city=$('city').value,batch=$('batch').value,sort=$('sort').value,src=$('source').value;
- let filtered=original.filter(j=>active(j)&&inGeo(j,city)&&inBatch(j,batch)&&(src==='all'||(src==='official'?j.source.includes('Greenhouse'):src==='github'?j.source.includes('GitHub'):j.manual))&&(!txt||[j.company,j.title,j.program,j.industry,...j.positions,...j.locations].join(' ').toLowerCase().includes(txt))&&($('show-uncertain').checked||Boolean(j.title||j.positions.length)));
+ let filtered=original.filter(j=>active(j)&&inGeo(j,city)&&inBatch(j,batch)&&(src==='all'||(src==='official'?j.source.includes('Greenhouse'):src==='github'?j.source.includes('GitHub'):src==='boss'?j.manual&&j.source.includes('BOSS直聘'):j.manual))&&(!txt||[j.company,j.title,j.program,j.industry,...j.positions,...j.locations].join(' ').toLowerCase().includes(txt))&&($('show-uncertain').checked||Boolean(j.title||j.positions.length)));
  filtered.forEach(j=>j.eval=score(j));filtered.sort((a,b)=>sort==='fresh'?(b.first_seen||'').localeCompare(a.first_seen||''):sort==='deadline'?(a.deadline||'9999').localeCompare(b.deadline||'9999'):b.eval.score-a.eval.score);
  $('count-all').textContent=original.length;$('count-fit').textContent=filtered.length;$('count-top').textContent=filtered.filter(j=>j.eval.score>=80).length;$('count-applied').textContent=Object.values(local.status).filter(s=>s==='已投递'||s==='面试中').length;$('results-heading').textContent=`职位线索（${filtered.length}）`;
  if(!filtered.length){$('list').innerHTML='<div class="empty"><h3>没有符合筛选条件的岗位</h3><p>可以修改地区或关键词，或者在下方手动添加职位。<br>若数据源获取失败，请检查网络后点击“重新获取”。</p></div>';return}
@@ -94,5 +94,6 @@ refresh();
 </script>
 <script src="enhance.js" defer></script>
 <script src="ai-results.js" defer></script>
+<script src="platforms.js" defer></script>
 </body>
 </html>
