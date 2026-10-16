@@ -1,0 +1,46 @@
+name: Evaluate selected jobs with AI (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: career-radar-ai-manual
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    # Explicit repository opt-in must be set to true before ANY API calls.
+    if: vars.ENABLE_PAID_AI == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      AI_MODEL: gpt-4.1-mini
+      MAX_NEW_JOBS: '3'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Analyze up to three new public jobs
+        run: python scripts/ai_score.py
+      - name: Commit AI evaluations (public, no resume data)
+        run: |
+          if [ ! -f data/ai_scores.json ]; then
+            echo "No AI evaluations produced"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ai_scores.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Add AI job evaluations"
+            git push
+          else
+            echo "No changes"
+          fi
