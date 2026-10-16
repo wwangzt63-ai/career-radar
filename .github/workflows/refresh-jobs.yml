@@ -2,6 +2,11 @@ name: Refresh public job leads
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/refresh_jobs_v2.py'
+      - '.github/workflows/refresh-jobs.yml'
   schedule:
     # Run around 09:17 Hong Kong time (UTC+8) each day.
     # GitHub may delay a scheduled run.
