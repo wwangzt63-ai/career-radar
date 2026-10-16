@@ -151,8 +151,12 @@ def greenhouse_feed(token, company):
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", published):
             published = ""
         updated = str(j.get("updated_at") or "")[:10]
-        cohort = "2027届" if re.search(r"\b2027\b", title) else ""
-        if "2026" in title and "2027" not in title:
+        # An internship taking place in summer 2027 is not necessarily for the class of 2027.
+        # Only infer an eligibility cohort from explicit graduation / class terminology.
+        cohort = ""
+        if re.search(r"(?:class of\s*2027|graduat(?:ing|ion)\s*(?:in\s*)?2027|2027届|2027\s+graduates?)", title, re.I):
+            cohort = "2027届"
+        elif re.search(r"(?:class of\s*2026|graduat(?:ing|ion)\s*(?:in\s*)?2026|2026届|2026\s+graduates?)", title, re.I):
             cohort = "2026届"
         batch = "实习" if re.search(r"intern|实习", title, re.I) else "正式批"
         dept = j.get("departments") or []
