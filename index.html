@@ -92,5 +92,6 @@ function csvParse(text){let out=[],row=[],field='',quoted=false;for(let i=0;i<te
 $('csv-input').addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;let rows=csvParse((await f.text()).replace(/^\uFEFF/,''));let heads=(rows.shift()||[]).map(x=>x.trim().toLowerCase());let added=0;for(let row of rows.slice(0,1000)){const obj={};heads.forEach((h,i)=>obj[h]=row[i]||'');if(!obj.company||!obj.title)continue;local.manual.push({id:'csv-'+Date.now()+'-'+added,company:obj.company,title:obj.title,locations:[obj.location||''],apply_url:validUrl(obj.url),source:obj.source||'CSV导入',deadline:obj.deadline||'',cohort:obj.cohort||'',batch:obj.batch||'',industry:obj.industry||''});added++}save();render();alert('导入 '+added+' 条（若重复，需自行清理）');e.target.value=''});
 refresh();
 </script>
+<script src="enhance.js" defer></script>
 </body>
 </html>
